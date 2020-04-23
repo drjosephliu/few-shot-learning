@@ -1,5 +1,5 @@
 """
-Reproduce Omniglot results of Snell et al Prototypical networks.
+Baseline nearest neighbour model for few-shot learning
 """
 import sys
 import os
@@ -7,20 +7,17 @@ fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 sys.path.append(parentDir)
 
-
-from torch.optim import Adam
-from torch.utils.data import DataLoader
 import argparse
+from torch.utils.data import DataLoader
+from torch.optim import Adam
 
 from few_shot.datasets import OmniglotDataset, MiniImageNet
-from few_shot.models import get_few_shot_encoder
-from few_shot.core import NShotTaskSampler, EvaluateFewShot, prepare_nshot_task
-from few_shot.proto import proto_net_episode
+from few_shot.core import NShotTaskSampler, prepare_nshot_task, EvaluateFewShot
+from few_shot.nearest_neighbour import nearest_neighbour_episode
 from few_shot.train import fit
 from few_shot.callbacks import *
 from few_shot.utils import setup_dirs
 from config import PATH
-
 
 setup_dirs()
 assert torch.cuda.is_available()
@@ -40,6 +37,7 @@ parser.add_argument('--k-train', default=60, type=int)
 parser.add_argument('--k-test', default=5, type=int)
 parser.add_argument('--q-train', default=5, type=int)
 parser.add_argument('--q-test', default=1, type=int)
+parser.add_argument('--bneck-size', default=32, type=int)
 args = parser.parse_args()
 
 evaluation_episodes = 1000
@@ -63,6 +61,8 @@ param_str = f'{args.dataset}_nt={args.n_train}_kt={args.k_train}_qt={args.q_trai
 
 print(param_str)
 
+
+
 ###################
 # Create datasets #
 ###################
@@ -79,21 +79,12 @@ evaluation_taskloader = DataLoader(
     num_workers=4
 )
 
-
 #########
 # Model #
 #########
-model = get_few_shot_encoder(num_input_channels)
+from few_shot.models import Autoencoder
+model = Autoencoder(args.bneck_size)
 model.to(device, dtype=torch.double)
-
-
-############
-# Training #
-############
-print(f'Training Prototypical network on {args.dataset}...')
-optimiser = Adam(model.parameters(), lr=1e-3)
-loss_fn = torch.nn.NLLLoss().cuda()
-
 
 def lr_schedule(epoch, lr):
     # Drop lr every 2000 episodes
@@ -102,10 +93,16 @@ def lr_schedule(epoch, lr):
     else:
         return lr
 
+############
+# Training #
+############
+print(f'training matching network on {args.dataset}...')
+optimiser = Adam(model.parameters(), lr=1e-3)
+loss_fn = torch.nn.NLLLoss().cuda()
 
 callbacks = [
     EvaluateFewShot(
-        eval_fn=proto_net_episode,
+        eval_fn=nearest_neighbour_episode,
         num_tasks=evaluation_episodes,
         n_shot=args.n_test,
         k_way=args.k_test,
@@ -115,11 +112,11 @@ callbacks = [
         distance=args.distance
     ),
     ModelCheckpoint(
-        filepath=PATH + f'/models/proto_nets/{param_str}.pth',
-        monitor=f'val_{args.n_test}-shot_{args.k_test}-way_acc'
+        filepath=PATH + f'/models/nearest_neighbour/{param_str}.pth',
+        monitor=f'val_{args.n_test}-shot_{args.k_test}-way-acc',
     ),
     LearningRateScheduler(schedule=lr_schedule),
-    CSVLogger(PATH + f'/logs/proto_nets/{param_str}.csv'),
+    CSVLogger(PATH + f'/logs/nearest_neighbour/{param_str}.csv'),
 ]
 
 fit(
@@ -128,10 +125,17 @@ fit(
     loss_fn,
     epochs=n_epochs,
     dataloader=background_taskloader,
-    prepare_batch=prepare_nshot_task(args.n_train, args.k_train, args.q_train),
+    prepare_batch=prepare_nshot_task(args.n_train, args.k_train,
+                                      args.q_train),
     callbacks=callbacks,
     metrics=['categorical_accuracy'],
-    fit_function=proto_net_episode,
-    fit_function_kwargs={'n_shot': args.n_train, 'k_way': args.k_train, 'q_queries': args.q_train, 'train': True,
-                         'distance': args.distance},
+    fit_function=nearest_neighbour_episode,
+    fit_function_kwargs={
+        'n_shot': args.n_train,
+        'k_way': args.k_train,
+        'q_queries': args.q_train,
+        'train': True,
+        'distance': args.distance
+    }
 )
+

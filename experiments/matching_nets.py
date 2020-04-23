@@ -1,6 +1,12 @@
 """
 Reproduce Matching Network results of Vinyals et al
 """
+import sys
+import os
+fileDir = os.path.dirname(os.path.abspath(__file__))
+parentDir = os.path.dirname(fileDir)
+sys.path.append(parentDir)
+
 import argparse
 from torch.utils.data import DataLoader
 from torch.optim import Adam

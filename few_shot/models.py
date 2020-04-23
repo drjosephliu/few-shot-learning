@@ -249,3 +249,31 @@ class AttentionLSTM(nn.Module):
         h = h_hat + queries
 
         return h
+
+class Autoencoder(nn.Module):
+    
+    def __init__(self, n=32):
+        super(Autoencoder, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(28*28, 512, bias=True),
+            nn.ReLU(True),
+            nn.Linear(512, 256, bias=True),
+            nn.ReLU(True),
+            nn.Linear(256, n, bias=True),
+            nn.ReLU(True),
+            Flatten()
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(n, 256, bias=True),
+            nn.ReLU(True),
+            nn.Linear(256, 512, bias=True),
+            nn.ReLU(True),
+            nn.Linear(512, 28*28, bias=True),
+            nn.Tanh(),
+            Flatten()
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x

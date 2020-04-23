@@ -30,7 +30,7 @@ def handle_characters(alphabet_folder, character_folder, rotate):
         character_name = root.split('/')[-1]
         mkdir(f'{alphabet_folder}.{rotate}/{character_name}')
         for img_path in character_images:
-            print(root+'/'+img_path)
+            # print(root+'/'+img_path)
             img = io.imread(root+'/'+img_path)
             img = transform.rotate(img, angle=rotate)
             img = transform.resize(img, output_shape, anti_aliasing=True)

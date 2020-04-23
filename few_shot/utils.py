@@ -36,10 +36,12 @@ def setup_dirs():
     mkdir(PATH + '/logs/proto_nets')
     mkdir(PATH + '/logs/matching_nets')
     mkdir(PATH + '/logs/maml')
+    mkdir(PATH + '/logs/nearest_neighbour')
     mkdir(PATH + '/models/')
     mkdir(PATH + '/models/proto_nets')
     mkdir(PATH + '/models/matching_nets')
     mkdir(PATH + '/models/maml')
+    mkdir(PATH + '/models/nearest_neighbour')
 
 
 def pairwise_distances(x: torch.Tensor,

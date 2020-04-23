@@ -1,6 +1,12 @@
 """
 Reproduce Model-agnostic Meta-learning results (supervised only) of Finn et al
 """
+import sys
+import os
+fileDir = os.path.dirname(os.path.abspath(__file__))
+parentDir = os.path.dirname(fileDir)
+sys.path.append(parentDir)
+
 from torch.utils.data import DataLoader
 from torch import nn
 import argparse

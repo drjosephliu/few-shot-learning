@@ -51,6 +51,7 @@ def proto_net_episode(model: Module,
     queries = embeddings[n_shot*k_way:]
     prototypes = compute_prototypes(support, k_way, n_shot)
 
+    print("EMBEDDINGS:{}".format(embeddings.shape))
     # Calculate squared distances between all queries and all prototypes
     # Output should have shape (q_queries * k_way, k_way) = (num_queries, k_way)
     distances = pairwise_distances(queries, prototypes, distance)
