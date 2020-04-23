@@ -13,8 +13,7 @@ from torch.optim import Adam
 
 from few_shot.datasets import OmniglotDataset, MiniImageNet
 from few_shot.core import NShotTaskSampler, prepare_nshot_task, EvaluateFewShot
-from few_shot.nearest_neighbour import
-nearest_neighbour_episode, autoencoder_episode
+from few_shot.nearest_neighbour import nearest_neighbour_episode, autoencoder_episode
 from few_shot.train import fit
 from few_shot.callbacks import *
 from few_shot.utils import setup_dirs
