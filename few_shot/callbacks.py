@@ -520,6 +520,7 @@ class LearningRateScheduler(Callback):
             for i, param_group in enumerate(self.optimiser.param_groups):
                 logs['lr_{}'.format(i)] = param_group['lr']
 
+
     def set_lr(self, epoch, lrs):
         for i, param_group in enumerate(self.optimiser.param_groups):
             new_lr = lrs[i]

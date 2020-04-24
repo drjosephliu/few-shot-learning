@@ -83,11 +83,13 @@ def matching_net_episode(model: Module,
     # Calculate predictions as in equation (1) from Matching Networks
     # y_hat = \sum_{i=1}^{k} a(x_hat, x_i) y_i
     y_pred = matching_net_predictions(attention, n_shot, k_way, q_queries)
+    print("y_pred: {}".format(y_pred))
 
     # Calculated loss with negative log likelihood
     # Clip predictions for numerical stability
     clipped_y_pred = y_pred.clamp(EPSILON, 1 - EPSILON)
     loss = loss_fn(clipped_y_pred.log(), y)
+    print("CLIPPED: {}".format(clipped_y_pred))
 
     if train:
         # Backpropagate gradients

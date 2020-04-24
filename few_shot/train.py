@@ -108,7 +108,10 @@ def fit(model: Module, optimiser: Optimizer, loss_fn: Callable, epochs: int, dat
 
             callbacks.on_batch_begin(batch_index, batch_logs)
 
+            print("=============")
             x, y = prepare_batch(batch)
+            print("X: {}, y: {}".format(x.shape, y.shape)) 
+            print("y: {}".format(y))
 
             loss, y_pred = fit_function(model, optimiser, loss_fn, x, y, **fit_function_kwargs)
             batch_logs['loss'] = loss.item()
